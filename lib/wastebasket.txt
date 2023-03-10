@@ -1,0 +1,418 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+import 'package:medizda/pages/authentication/log_in.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final dropdownItems = <String>['C L I N I C', 'F I R S T', 'S E C O N D'];
+  var dropdownValue = '';
+
+  void _onDropdownChanged(dynamic value) {
+    setState(() {
+      dropdownValue = value;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.grey[850],
+        body: SafeArea(
+          child: Column(
+            children: [
+              CustomAppBar(
+                dropdownItems: dropdownItems,
+                dropdownValue: dropdownValue,
+                onDropdownChanged: _onDropdownChanged,
+              ),
+              if (dropdownValue == dropdownItems.first ||
+                  dropdownValue == '') ...[
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Container(
+                              height: double.infinity,
+                              color: Colors.black,
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                      'W Y B I E R Z   K L I N I K Ę',
+                                      style: TextStyle(color: Colors.white))))),
+                      Expanded(
+                          child: Container(
+                              height: double.infinity,
+                              color: Colors.white,
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  child: const Text('D O D A J   K L I N I K Ę',
+                                      style: TextStyle(color: Colors.black))))),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                Expanded(
+                    child: Container(
+                        height: double.infinity,
+                        color: Colors.black,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                  decoration:
+                                      const BoxDecoration(color: Colors.white),
+                                  alignment: Alignment.center,
+                                  child: const Text('C A L E N D A R',
+                                      style: TextStyle(color: Colors.black))),
+                            ),
+                            const Expanded(
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 24),
+                                  Text('P A T I E N T   I N F O',
+                                      style: TextStyle(color: Colors.white)),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 32, vertical: 32),
+                                    child: AutocompleteBasicExample(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ))),
+              ]
+            ],
+          ),
+        ));
+  }
+}
+
+class CustomAppBar extends StatelessWidget {
+  final String dropdownValue;
+  final List<String> dropdownItems;
+  final void Function(dynamic value) onDropdownChanged;
+
+  const CustomAppBar(
+      {super.key,
+      required this.dropdownValue,
+      required this.dropdownItems,
+      required this.onDropdownChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+        elevation: 0,
+        leading: const Icon(Icons.medical_services),
+        toolbarHeight: 64,
+        title: const Text('A.M.A.R.E.N.A.'),
+        backgroundColor: Colors.grey[900],
+        actions: [
+          TextButton(
+              style: ButtonStyle(
+                  padding: MaterialStateProperty.all(
+                      const EdgeInsets.only(left: 24, right: 24))),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                );
+              },
+              child:
+                  const Text('H O M E', style: TextStyle(color: Colors.white))),
+          const SizedBox(width: 64),
+          CustomDropdownButton(
+            dropdownValue: dropdownValue,
+            dropdownItems: dropdownItems,
+            onChanged: onDropdownChanged,
+          ),
+          const SizedBox(width: 64),
+          TextButton(
+              style: ButtonStyle(
+                  padding: MaterialStateProperty.all(
+                      const EdgeInsets.only(left: 24, right: 24))),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LogInPage()),
+                );
+              },
+              child: const Text('L O G   O U T',
+                  style: TextStyle(color: Colors.white))),
+          const SizedBox(width: 64),
+          IconButton(
+            padding: const EdgeInsets.only(left: 24, right: 24),
+            onPressed: () {},
+            icon: const Icon(Icons.settings),
+          ),
+          const SizedBox(width: 32),
+        ]);
+  }
+}
+
+class CustomDropdownButton extends StatefulWidget {
+  final String dropdownValue;
+  final List<String> dropdownItems;
+  final void Function(dynamic value) onChanged;
+
+  const CustomDropdownButton(
+      {super.key,
+      required this.dropdownValue,
+      required this.dropdownItems,
+      required this.onChanged});
+
+  @override
+  State<CustomDropdownButton> createState() => _CustomDropdownButtonState();
+}
+
+class _CustomDropdownButtonState extends State<CustomDropdownButton> {
+  late String dropdownValue;
+
+  @override
+  void initState() {
+    super.initState();
+    dropdownValue = widget.dropdownItems.first;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: DropdownButton<String>(
+        alignment: AlignmentDirectional.bottomCenter,
+        value: dropdownValue,
+        dropdownColor: Colors.grey[900],
+        icon: const Icon(Icons.arrow_downward),
+        style: const TextStyle(color: Colors.white),
+        underline: Container(
+          height: 2,
+          color: Colors.white,
+        ),
+        onChanged: (dynamic value) {
+          widget.onChanged(value);
+          setState(() {
+            dropdownValue = value;
+          });
+        },
+        items:
+            widget.dropdownItems.map<DropdownMenuItem<String>>((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class InsertInfoPage extends StatefulWidget {
+  const InsertInfoPage({Key? key}) : super(key: key);
+
+  @override
+  State<InsertInfoPage> createState() => _InsertInfoPage();
+}
+
+class _InsertInfoPage extends State<InsertInfoPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.grey[850],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                        child: Container(
+                            height: double.infinity,
+                            color: Colors.black,
+                            child: Container(
+                                alignment: Alignment.center,
+                                child: const Text(
+                                    'D A T A B A S E   P R E V I E W',
+                                    style: TextStyle(color: Colors.white))))),
+                    const Expanded(
+                      child: Column(
+                        children: [
+                          PersonalInfo(),
+                          HomeInfo(),
+                          MedicalInfo(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
+}
+
+class PersonalInfo extends StatelessWidget {
+  const PersonalInfo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.blueGrey[700],
+              borderRadius: BorderRadius.circular(16)),
+          height: 100,
+          width: double.infinity,
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.blueGrey[400],
+                        borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.person)),
+              ),
+              const Text('personal info',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HomeInfo extends StatelessWidget {
+  const HomeInfo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.blueGrey[700],
+              borderRadius: BorderRadius.circular(16)),
+          height: 100,
+          width: double.infinity,
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.blueGrey[400],
+                        borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.home)),
+              ),
+              const Text('address',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MedicalInfo extends StatelessWidget {
+  const MedicalInfo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Flexible(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.blueGrey[700],
+              borderRadius: BorderRadius.circular(16)),
+          height: 300,
+          width: double.infinity,
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Container(
+                    decoration: BoxDecoration(
+                        color: Colors.blueGrey[400],
+                        borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.all(8),
+                    child: const Icon(Icons.medical_information)),
+              ),
+              const Text('medical info',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ScheduledVisits extends StatefulWidget {
+  const ScheduledVisits({Key? key}) : super(key: key);
+
+  @override
+  State<ScheduledVisits> createState() => _ScheduledVisits();
+}
+
+class _ScheduledVisits extends State<ScheduledVisits> {
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 4.0,
+                sigmaY: 4.0,
+              ),
+              child: Container(),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.white.withOpacity(0.13)),
+                gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.15),
+                      Colors.white.withOpacity(0.05),
+                    ]),
+              ),
+            ),
+            const Center(
+                child: Text('essa',
+                    style: TextStyle(color: Colors.white, fontSize: 24))),
+          ],
+        ),
+      ),
+    );
+  }
+}
