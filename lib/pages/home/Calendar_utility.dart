@@ -37,6 +37,17 @@ int getNumberofEvents() {
   }
 }
 
+_retrievePatients() async {
+  patients = [];
+  List response = json
+      .decode((await client.get(Uri.http('127.0.0.1:8000', 'patients'))).body);
+  for (var element in response) {
+    patients.add(Patient.fromJson(element));
+  }
+  patientsFiltered = patients;
+  setState(() {});
+}
+
 final _kEventSource = {
   for (var item in List.generate(50, (index) => index))
     DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5): List.generate(
