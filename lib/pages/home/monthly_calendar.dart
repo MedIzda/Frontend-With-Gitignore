@@ -79,8 +79,8 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
                 onPressed: () {
                   addEvent(
                       _focusedDay,
-                      Event(
-                          'Event ${(kEvents[_focusedDay]?.length ?? 0) + 1} \t start | end'));
+                      Event(title: 'Event ${(kEvents[_focusedDay]?.length ?? 0) + 1}', date: DateTime.now(), patient: 'x', clinic: 'y')
+                    );
                   setState(() {});
                 },
                 style: TextButton.styleFrom(

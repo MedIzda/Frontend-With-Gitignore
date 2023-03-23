@@ -1,16 +1,34 @@
 import 'dart:collection';
-
 import 'package:flutter/widgets.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import '../../constants.dart';
 
 /// Example event class.
 class Event {
-  final String title;
+  String title;
+  DateTime date;
+  String patient;
+  String clinic;
 
-  const Event(this.title);
+  Event({
+    required this.title,
+    required this.date,
+    required this.patient,
+    required this.clinic,
+  });
+
+  factory Event.fromJson(dynamic json) {
+    return Event(
+        title: "json['title']", date: json['date'], patient: json['patient'], clinic: json['clinic']);
+  }
 
   @override
-  String toString() => title;
+  String toString() => '$title \t|\t Start - ${date.hour}:${date.minute} \t|\t Patient - $patient \t|\t Clinic - $clinic';
 }
 
 class EventState with ChangeNotifier {
@@ -37,25 +55,27 @@ int getNumberofEvents() {
   }
 }
 
-_retrievePatients() async {
-  patients = [];
-  List response = json
-      .decode((await client.get(Uri.http('127.0.0.1:8000', 'patients'))).body);
+Future<List<Event>> _retrieveAppointments() async {
+  http.Client client = http.Client();
+  List<Event> appointments = [];
+  List response = json.decode(
+    (await client.get(Uri.http('127.0.0.1:8000', 'appointments'))).body);
   for (var element in response) {
-    patients.add(Patient.fromJson(element));
+    appointments.add(Event.fromJson(element));
   }
-  patientsFiltered = patients;
-  setState(() {});
+  // appointmentsFiltered = appointments;
+  return appointments;
 }
 
 final _kEventSource = {
   for (var item in List.generate(50, (index) => index))
     DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5): List.generate(
-        item % 4 + 1, (index) => Event('Event ${index + 1} \t start | end'))
+        item % 4 + 1, (index) => Event(title: 'Event ${index + 1}', date: DateTime.utc(kFirstDay.year, kFirstDay.month, item * 5),
+                                                   patient: 'x', clinic: 'y'))
 }..addAll({
     kToday: [
-      const Event('Event 1 \t start | end'),
-      const Event('Event 2 \t start | end'),
+      Event(title: 'Event 1', date: DateTime.now(), patient: 'x', clinic: 'y'),
+      Event(title: 'Event 2', date: DateTime.now(), patient: 'x', clinic: 'y'),
     ],
   });
 
