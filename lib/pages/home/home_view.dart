@@ -92,7 +92,7 @@ class _WeeklyCalendarState extends State<WeeklyCalendar> {
   @override
   void initState() {
     super.initState();
-    _todaysEvents = ValueNotifier(kEvents[DateTime.now()] ?? []);
+    _todaysEvents = ValueNotifier([]);
   }
 
   @override
@@ -201,7 +201,7 @@ class _WeeklyCalendarHeaderState extends State<WeeklyCalendarHeader> {
   @override
   void initState() {
     super.initState();
-    _todaysEvents = ValueNotifier(kEvents[DateTime.now()] ?? []);
+    _todaysEvents = ValueNotifier([]);
   }
 
   @override

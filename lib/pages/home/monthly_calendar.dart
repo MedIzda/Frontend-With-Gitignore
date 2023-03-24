@@ -3,6 +3,10 @@ import 'package:medizda/constants.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'calendar_utility.dart';
+import 'dart:collection';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class MonthlyCalendar extends StatefulWidget {
   const MonthlyCalendar({super.key});
@@ -15,6 +19,12 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   late final ValueNotifier<List<Event>> _selectedEvents;
+  final kToday = DateTime.now();
+  late DateTime kFirstDay; 
+  late DateTime kLastDay;
+  late LinkedHashMap<DateTime, List<Event>> _kEventSource;
+  LinkedHashMap<DateTime, List<Event>> kEvents = LinkedHashMap();
+  List<Event> appointments = List.empty();
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +34,10 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
   @override
   void initState() {
     super.initState();
+    kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
+    kLastDay = DateTime(kToday.year, kToday.month + 3, kToday.day);
+    print('\ninit\n');
+    _retrieveAppointments();
 
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
@@ -49,6 +63,46 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
       });
     }
     _selectedEvents.value = _getEventsForDay(selectedDay);
+  }
+
+  int getNumberofEvents() {
+    if (kEvents[DateTime.now()] == null) {
+      return 0;
+    } else {
+      return kEvents[DateTime.now()]!.length;
+    }
+  }
+
+  void loadEvents(){
+    _kEventSource = LinkedHashMap();
+    for (var appointment in appointments){
+      if(_kEventSource[DateTime.utc(appointment.date.year, appointment.date.month, appointment.date.day)] != null){
+        _kEventSource[DateTime.utc(appointment.date.year, appointment.date.month, appointment.date.day)]?.add(appointment);
+      }else{
+        _kEventSource[DateTime.utc(appointment.date.year, appointment.date.month, appointment.date.day)] = [appointment];
+      } 
+    }
+    kEvents = LinkedHashMap<DateTime, List<Event>>(
+      equals: isSameDay,
+      hashCode: (DateTime key) => key.day * 1000000 + key.month * 10000 + key.year,
+    )..addAll(_kEventSource);
+    setState(() {
+        _selectedDay = DateTime.now();
+        _focusedDay = DateTime.now();
+      });
+      _selectedEvents.value = _getEventsForDay(DateTime.now());
+  }
+
+  void _retrieveAppointments() async{
+    appointments = [];
+    http.Client client = http.Client();
+    List response = json.decode(
+      (await client.get(Uri.http('127.0.0.1:8000', 'appointments'))).body);
+    for (var element in response) {
+      appointments.add(Event.fromJson(element));
+    }
+    loadEvents();
+    // appointmentsFiltered = appointments;
   }
 
   Widget content() {
@@ -79,7 +133,7 @@ class _MonthlyCalendarState extends State<MonthlyCalendar> {
                 onPressed: () {
                   addEvent(
                       _focusedDay,
-                      Event(title: 'Event ${(kEvents[_focusedDay]?.length ?? 0) + 1}', date: DateTime.now(), patient: 'x', clinic: 'y')
+                      Event(title: 'Event ${(kEvents[_focusedDay]?.length ?? 0) + 1}', date: DateTime.now(), patient: 'a', clinic: 1)
                     );
                   setState(() {});
                 },
