@@ -40,7 +40,7 @@ class PatientsDatabaseView extends StatefulWidget {
 
 class PatientsDatabaseViewState extends State<PatientsDatabaseView> {
   http.Client client = http.Client();
-  List<Patient> patients = [];
+  ValueNotifier<List<Patient>> patients = ValueNotifier([]);
 
   @override
   void initState() {
@@ -50,13 +50,15 @@ class PatientsDatabaseViewState extends State<PatientsDatabaseView> {
   }
 
   _retrievePatients() async {
-    patients = [];
+    patients.addListener(() {
+      setState(() {});
+    });
     List response = json.decode(
-        (await client.get(Uri.http('127.0.0.1:8000', 'patients'))).body);
+        (await client.get(Uri.parse('http://127.0.0.1:8000/patients'))).body);
     for (var element in response) {
-      patients.add(Patient.fromJson(element));
+      patients.value.add(Patient.fromJson(element));
     }
-    patientsFiltered = patients;
+    patientsFiltered = patients.value;
     setState(() {});
   }
 
@@ -91,10 +93,9 @@ class PatientsDatabaseViewState extends State<PatientsDatabaseView> {
                     onChanged: (value) {
                       setState(() {
                         _searchResult = value.toLowerCase();
-                        patientsFiltered = patients
+                        patientsFiltered = patients.value
                             .where((patient) =>
                                 patient.pesel
-                                    .toString()
                                     .toLowerCase()
                                     .contains(_searchResult) ||
                                 [
@@ -110,90 +111,144 @@ class PatientsDatabaseViewState extends State<PatientsDatabaseView> {
                     }),
               ),
             ),
-            const AddPatientButton(),
+            AddPatientButton(client: client),
           ],
         ),
         const SizedBox(height: defaultPadding),
         Expanded(
             child: Column(children: [
-          SizedBox(
-            height: 40,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Row(
-                children: const [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      'name',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Spacer(),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      'surname',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Spacer(),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      'pesel',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          const PatientDatabaseHeader(),
           Expanded(
             child: ListView.builder(
               itemCount: patientsFiltered.length,
               itemBuilder: ((BuildContext context, index) {
-                return Material(
-                  type: MaterialType.transparency,
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            patientsFiltered[index].name,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                        const Spacer(),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            patientsFiltered[index].surname,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                        const Spacer(),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            patientsFiltered[index].pesel,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      widget.updatePesel(patientsFiltered[index].pesel);
-                    },
-                    hoverColor: Colors.black.withOpacity(0.1),
-                  ),
+                return PatientTile(
+                  patient: patientsFiltered[index],
+                  client: client,
+                  updatePesel: widget.updatePesel,
+                  patients: patients,
                 );
               }),
             ),
           ),
         ]))
       ],
+    );
+  }
+}
+
+class PatientDatabaseHeader extends StatelessWidget {
+  const PatientDatabaseHeader({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+        child: Row(
+          children: const [
+            Expanded(
+              flex: 3,
+              child: Text(
+                'name',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Spacer(),
+            Expanded(
+              flex: 3,
+              child: Text(
+                'surname',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            Spacer(),
+            Expanded(
+              flex: 3,
+              child: Text(
+                'pesel',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(width: 50)
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PatientTile extends StatelessWidget {
+  final Patient patient;
+  final http.Client client;
+  final Function(String) updatePesel;
+  final ValueNotifier<List<Patient>> patients;
+
+  const PatientTile({
+    super.key,
+    required this.patient,
+    required this.client,
+    required this.updatePesel,
+    required this.patients,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: ListTile(
+        title: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Text(
+                patient.name,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            const Spacer(),
+            Expanded(
+              flex: 3,
+              child: Text(
+                patient.surname,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            const Spacer(),
+            Expanded(
+              flex: 3,
+              child: Text(
+                patient.pesel,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const SizedBox(
+            width: 50,
+            child: Icon(
+              Icons.delete,
+              color: Colors.black,
+            ),
+          ),
+          onPressed: () {
+            String pesel = patient.pesel;
+            client.delete(
+              Uri.parse('http://127.0.0.1:8000/patients/$pesel/delete'),
+            );
+            patients.value.remove(patient);
+            patients.notifyListeners();
+          },
+        ),
+        onTap: () {
+          updatePesel(patient.pesel);
+        },
+        hoverColor: Colors.black.withOpacity(0.1),
+      ),
     );
   }
 }

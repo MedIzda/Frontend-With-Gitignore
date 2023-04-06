@@ -1,15 +1,18 @@
+import 'package:http/http.dart' as http;
+
 import 'package:flutter/material.dart';
 import 'package:medizda/constants.dart';
 
 class AddPatientButton extends StatelessWidget {
-  const AddPatientButton({Key? key}) : super(key: key);
+  final http.Client client;
+  const AddPatientButton({Key? key, required this.client}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(HeroDialogRoute(builder: (context) {
-          return const _AddTodoPopupCard();
+          return _AddTodoPopupCard(client: client);
         }));
       },
       child: Hero(
@@ -40,7 +43,12 @@ class AddPatientButton extends StatelessWidget {
 const String _heroAddPatient = 'add-patient-hero';
 
 class _AddTodoPopupCard extends StatelessWidget {
-  const _AddTodoPopupCard({Key? key}) : super(key: key);
+  final nameController = TextEditingController();
+  final surnameController = TextEditingController();
+  final peselController = TextEditingController();
+  final http.Client client;
+
+  _AddTodoPopupCard({Key? key, required this.client}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -61,11 +69,12 @@ class _AddTodoPopupCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
-                      children: const [
+                      children: [
                         Expanded(
                           flex: 3,
                           child: TextField(
-                            decoration: InputDecoration(
+                            controller: nameController,
+                            decoration: const InputDecoration(
                               label: Text('Name'),
                               border: OutlineInputBorder(
                                   borderSide: BorderSide(),
@@ -75,11 +84,12 @@ class _AddTodoPopupCard extends StatelessWidget {
                             cursorColor: Colors.white,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         Expanded(
                           flex: 3,
                           child: TextField(
-                            decoration: InputDecoration(
+                            controller: surnameController,
+                            decoration: const InputDecoration(
                               label: Text('Surname'),
                               border: OutlineInputBorder(
                                   borderSide: BorderSide(),
@@ -89,11 +99,12 @@ class _AddTodoPopupCard extends StatelessWidget {
                             cursorColor: Colors.white,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         Expanded(
                           flex: 3,
                           child: TextField(
-                            decoration: InputDecoration(
+                            controller: peselController,
+                            decoration: const InputDecoration(
                               label: Text('Pesel'),
                               border: OutlineInputBorder(
                                   borderSide: BorderSide(),
@@ -110,7 +121,17 @@ class _AddTodoPopupCard extends StatelessWidget {
                       width: 128,
                       height: 32,
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          client.post(
+                              Uri.parse(
+                                  'http://127.0.0.1:8000/patients/create/'),
+                              body: {
+                                "name": nameController.text,
+                                "surname": surnameController.text,
+                                "pesel": peselController.text
+                              });
+                          Navigator.pop(context);
+                        },
                         child: const Text('A D D',
                             style: TextStyle(color: Colors.black)),
                       ),

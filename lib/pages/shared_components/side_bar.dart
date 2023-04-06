@@ -23,12 +23,12 @@ class SideBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
                   Icon(
-                    Icons.local_drink,
+                    Icons.ramen_dining_rounded,
                     color: Colors.black,
                   ),
                   SizedBox(width: defaultPadding / 2),
                   Text(
-                    'A M A R E N A',
+                    'U W U M E D',
                     style: TextStyle(color: Colors.black, fontSize: 16),
                   )
                 ],
